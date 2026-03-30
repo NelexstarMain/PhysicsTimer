@@ -20,7 +20,7 @@
         button:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0px 0px black; }
         button:active { transform: translate(2px, 2px); box-shadow: 0px 0px 0px 0px black; }
         button.action { background: black; color: white; }
-        input[type="text"] { border: var(--b); padding: 10px; font-family: inherit; outline: none; background: white; width: 280px; }
+        input[type="text"] { border: var(--b); padding: 10px; font-family: inherit; outline: none; background: white; width: 280px; }22
         .table-bar-container { width: 100%; height: 16px; background: #eee; border: var(--b); position: relative; overflow: hidden; }
         .table-bar { height: 100%; background: black; transition: width 0.3s ease-in-out; }
         .label { font-size: 10px; font-weight: bold; text-transform: uppercase; color: #666; margin-bottom: 5px; display: block; }
@@ -179,7 +179,7 @@ const app = {
         let currentId = document.getElementById("tn").value.trim() || "???";
         
         tasks.unshift({
-            date: new Date().toISOString().split('T')[0],
+            date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0],
             id: currentId,
             timeStr: document.getElementById("disp").innerText,
             ms: timer.elapsed
