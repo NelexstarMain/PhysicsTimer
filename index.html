@@ -5,94 +5,175 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22black%22/><text y=%22.82em%22 x=%2250%%22 font-family=%22monospace%22 font-size=%2290%22 fill=%22white%22 font-weight=%22bold%22 text-anchor=%22middle%22>+</text></svg>">
     <title>FIZYKA_SYSTEM_V13_PRO_CHART</title>
     <style>
-        :root { --b: 2px solid black; --shadow: 5px 5px 0px 0px black; }
-        body { font-family: 'Consolas', monospace; font-size: 13px; background: #f0f0f0; color: black; margin:0; padding:30px; line-height: 1.4; }
-        .s { border: var(--b); padding: 20px; margin-bottom: 25px; background: white; box-shadow: var(--shadow); position: relative; }
-        .t { font-size: 56px; font-weight: bold; margin: 15px 0; letter-spacing: -3px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: var(--b); padding: 10px; text-align: left; vertical-align: middle; }
-        th { background: #000; color: white; text-transform: uppercase; font-size: 11px; letter-spacing: 1px; }
-        button { 
-            background: white; border: var(--b); cursor: pointer; font-family: inherit; 
-            padding: 10px 20px; margin: 4px; font-weight: bold; text-transform: uppercase;
-            box-shadow: 3px 3px 0px 0px black; transition: 0.1s;
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+        
+        :root { 
+            --bg: #000000;
+            --card: #000000;
+            --border: #222222;
+            --text: #ffffff;
+            --text-dim: #555555;
+            --synth-grad: linear-gradient(90deg, #4285F4, #9b72cb, #EA4335, #FBBC05, #34A853, #4285F4);
         }
-        button:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0px 0px black; }
-        button:active { transform: translate(2px, 2px); box-shadow: 0px 0px 0px 0px black; }
-        button.action { background: black; color: white; }
-        input[type="text"] { border: var(--b); padding: 10px; font-family: inherit; outline: none; background: white; width: 280px; }
-        .table-bar-container { width: 100%; height: 16px; background: #eee; border: var(--b); position: relative; overflow: hidden; }
-        .table-bar { height: 100%; background: black; transition: width 0.3s ease-in-out; }
-        .label { font-size: 10px; font-weight: bold; text-transform: uppercase; color: #666; margin-bottom: 5px; display: block; }
-        ::-webkit-scrollbar { width: 14px; }
-        ::-webkit-scrollbar-thumb { background: black; border: 4px solid white; }
-        .grid-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .migration-alert { background: black; color: white; padding: 10px; margin-bottom: 20px; display: none; font-weight: bold; text-align: center; }
+        @keyframes flow {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+        @keyframes noiseDrift {
+            0% { transform: translateY(0px) translateX(0px); opacity: 0.6; }
+            50% { opacity: 0.9; }
+            100% { transform: translateY(-50px) translateX(-50px); opacity: 0.6; }
+        }
+        @keyframes bgNoiseDrift { 
+            0% { transform: translate(0, 0); } 
+            25% { transform: translate(-15vw, -8vh); }
+            50% { transform: translate(-5vw, -18vh); }
+            75% { transform: translate(-20vw, -5vh); }
+            100% { transform: translate(0, 0); } 
+        }
         
-        canvas.main-chart { width: 100%; height: 280px; display: block; cursor: crosshair; }
+        body { font-family: 'Space Mono', monospace; font-size: 14px; background: var(--bg); color: var(--text); margin:0; padding:20px 40px; overflow-x: hidden; }
+        .noise-bg {
+            position: fixed; top: -75vh; left: -75vw; width: 250vw; height: 250vh;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300' viewBox='0 0 300 300'%3E%3Cfilter id='n' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.06' numOctaves='5'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='discrete' tableValues='0%200.1%200.2%200.35%200.5%200.65%200.8%201'/%3E%3CfeFuncG type='discrete' tableValues='0%200.1%200.2%200.35%200.5%200.65%200.8%201'/%3E%3CfeFuncB type='discrete' tableValues='0%200.1%200.2%200.35%200.5%200.65%200.8%201'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+            background-size: 250vw 250vh;
+            background-repeat: no-repeat;
+            image-rendering: pixelated;
+            opacity: 0.2; mix-blend-mode: screen; pointer-events: none; z-index: 9999;
+            animation: bgNoiseDrift 60s infinite ease-in-out;
+        }
+        .s { border: 1px solid var(--border); border-radius: 0; padding: 32px; margin-bottom: 48px; background: var(--card); position: relative; z-index: 1; overflow: hidden; transition: 0.3s;}
+        .s:hover { border-color: #444; box-shadow: 0 0 30px rgba(66, 133, 244, 0.05); transform: translateY(-4px); }
         
-        /* Styl dla mini-wykresów wielkości tekstu */
+        .t { 
+            font-size: 96px; font-weight: 700; margin: 15px 0; text-align: center;
+            background: var(--synth-grad); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: flow 4s linear infinite; letter-spacing: -4px; 
+            filter: drop-shadow(4px 4px 0px rgba(0, 255, 255, 0.6)) drop-shadow(-4px -4px 0px rgba(255, 0, 255, 0.6)) drop-shadow(0 0 25px rgba(255,255,255,0.3));
+        }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; position: relative; z-index: 1;}
+        th, td { padding: 12px; text-align: left; border-bottom: 1px dashed var(--border); }
+        th { color: var(--text-dim); font-size: 16px;}
+        
+        button { background: transparent; border: 1px solid #444; cursor: pointer; color: var(--text); font-family: inherit; padding: 10px 16px; margin: 4px; font-size: 16px; transition: 0.3s; position: relative; z-index: 1; letter-spacing: 2px; text-transform: uppercase;}
+        button:hover { 
+            color: #fff; border-color: transparent; 
+            background: var(--synth-grad); background-size: 200% auto; animation: flow 2s linear infinite;
+            box-shadow: 0 0 20px rgba(66, 133, 244, 0.6), 0 0 40px rgba(234, 67, 53, 0.4);
+            transform: scale(1.05);
+        }
+        button.action { 
+            background: var(--synth-grad); background-size: 200% auto; animation: flow 2s linear infinite; 
+            color: #fff; font-weight: bold; border-color: transparent;
+            box-shadow: 0 0 15px rgba(255,255,255,0.2);
+        }
+        button.action:hover { 
+            box-shadow: 0 0 30px rgba(66, 133, 244, 0.8), 0 0 50px rgba(234, 67, 53, 0.8);
+            transform: scale(1.1);
+        }
+        
+        input[type="text"] { border: none; border-bottom: 1px solid #444; padding: 10px; font-family: inherit; outline: none; background: transparent; width: 250px; color: white; font-size: 24px; position: relative; z-index: 1; text-align: center;}
+        input[type="text"]:focus { border-bottom: 1px solid #fff; box-shadow: 0 5px 15px -10px rgba(255,255,255,0.5);}
+        
+        .table-bar-container { width: 100%; height: 4px; background: #222; }
+        .table-bar { height: 100%; background: var(--synth-grad); background-size: 200% auto; animation: flow 5s linear infinite; box-shadow: 0 0 10px rgba(66, 133, 244, 0.4); position: relative; overflow: hidden;}
+        
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #444; }
+        
+        .grid-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-bottom: 48px; position: relative; z-index: 1;}
+        
+        canvas.main-chart { width: 100%; height: 280px; display: block; cursor: crosshair; position: relative; z-index: 1; mix-blend-mode: exclusion;}
+        
         .sparkline { width: 80px; height: 16px; display: inline-block; vertical-align: middle; }
-        .btn-small { padding: 4px 10px; font-size: 11px; margin: 0 2px; }
+        .btn-small { padding: 4px 10px; font-size: 14px; margin: 0 2px; border:none;}
+        
+        @keyframes pulseGlow { 0% { box-shadow: 0 0 15px rgba(66, 133, 244, 0.3); } 100% { box-shadow: 0 0 45px rgba(66, 133, 244, 0.8); } }
+        .progress-badge { display: flex; justify-content: flex-start; align-items: baseline; margin-bottom: 40px; position: relative; z-index: 1; gap: 20px;}
+        .progress-badge .rank-name { 
+            font-size: 86px; font-weight: 700; text-transform: uppercase; font-style: italic;
+            color: transparent; background: var(--synth-grad); background-size: 200% auto; -webkit-background-clip: text; 
+            animation: flow 3s linear infinite; letter-spacing: -2px;
+            filter: drop-shadow(4px 4px 0px #000) drop-shadow(8px 8px 0px rgba(66,133,244,0.8)) drop-shadow(-4px -4px 0px rgba(234,67,53,0.8)) drop-shadow(0 0 30px rgba(255,255,255,0.4));
+            transform: perspective(500px) rotateX(15deg) scaleY(1.1);
+        }
+        .progress-bar-bg { width: 100%; height: 12px; background: #1a1a1a; margin-bottom: 15px; position: relative; z-index: 1; border-radius: 2px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);}
+        .progress-bar-fill { position: relative; height: 100%; background: var(--synth-grad); background-size: 200% auto; animation: flow 5s linear infinite, pulseGlow 2s infinite alternate; transition: width 0.5s; overflow: hidden; border-radius: 2px;}
+        .progress-bar-fill::after, .table-bar::after { content: ""; position: absolute; top:-50px; left:-50px; width:calc(100% + 100px); height:calc(100% + 100px); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.08' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)'/%3E%3C/svg%3E"); mix-blend-mode: multiply; pointer-events: none; opacity: 0.9; animation: noiseDrift 15s infinite linear; }
+        .progress-text { display: none; }
+        .progress-stats { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-dim); position: relative; z-index: 1;}
     </style>
 </head>
 <body>
+<div class="noise-bg"></div>
 
-<div id="migrationInfo" class="migration-alert">WYKRYTO I ZAIMPORTOWANO DANE Z POPRZEDNIEJ WERSJI (V7)</div>
+<div id="migrationInfo" style="display:none;"></div>
+
+<div class="s" style="padding-bottom: 25px;">
+    <div class="progress-badge">
+        <span id="rankName" class="rank-name">—</span>
+        <span id="rankNext" style="font-size: 18px; color: #777; font-weight: bold;">—</span>
+    </div>
+    <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="rankFill" style="width: 0%;"></div>
+        <div class="progress-text" id="rankText">0/0</div>
+    </div>
+    <div class="progress-stats" style="font-size: 14px;">
+        <span>∑ <span id="totalBooks" style="color:white; font-weight:bold;">0</span> / 3000</span>
+        <span id="totalPercent" style="color:white; font-weight:bold;">0.00%</span>
+    </div>
+</div>
 
 <div class="grid-stats">
-    <div class="s">
-        <span class="label">Statystyki Skupienia</span>
-        DZIŚ: <strong id="tdt">00:00:00</strong> | ZADAŃ: <strong id="dc">0</strong><br>
-        SUMA: <strong id="tot">00:00:00</strong> | ŚREDNIA: <strong id="avg">0s</strong>
+    <div class="s" style="display:flex; flex-direction:column; justify-content:center;">
+        <div style="font-size:40px; font-weight:bold; letter-spacing:-1px;"><span id="tdt" style="color:white;">00:00:00</span> <span style="font-size:18px; color:#555;">[ <span id="dc" style="color:var(--text);">0</span> ]</span></div>
+        <div style="margin-top:10px;"><span style="color:#777;">∑</span> <strong id="tot">00:00:00</strong> <span style="color:#777;">| µ</span> <strong id="avg">0s</strong></div>
     </div>
-    <div class="s">
-        <span class="label">Globalny Rekord Wytrzymałości (Max)</span>
-        <div id="bestAll" style="font-weight: bold; font-size: 16px;">—</div>
+    <div class="s" style="display:flex; flex-direction:column; justify-content:center;">
+        <div id="bestAll" style="font-weight: bold; font-size: 40px; color: white; letter-spacing:-1px;">—</div>
+        <div style="color:#777; margin-top:10px; font-weight:bold; letter-spacing:2px;">REKORD MAX</div>
     </div>
 </div>
 
 <div class="s">
-    <span class="label">Timeline Czasu Nauki (Interaktywny)</span>
     <canvas id="activityChart" class="main-chart"></canvas>
 </div>
 
 <div class="s">
-    <span class="label">Ranking Rozdziałów</span>
     <div id="chapterStats"></div>
 </div>
 
-<div class="s">
-    <span class="label">Kontroler Czasu</span>
-    ID ZADANIA: <input type="text" id="tn" placeholder="np. 15.01" list="taskHistory" autocomplete="off">
+<div class="s" style="text-align: center; padding: 40px 20px;">
+    <input type="text" id="tn" placeholder="ID ZADANIA" list="taskHistory" autocomplete="off" style="text-align:center; width:250px; font-size:24px; border-bottom: 2px solid #555;">
     <datalist id="taskHistory"></datalist>
     <div class="t" id="disp">00:00:00.000</div>
-    <button onclick="timer.toggle()">START/STOP</button>
-    <button onclick="timer.reset()">RESET</button>
-    <button onclick="app.save()" class="action" title="Skrót: Ctrl + Enter">ZAPISZ SESJĘ</button>
+    <div style="margin-top: 20px;">
+        <button onclick="timer.toggle()">[ PLAY / PAUSE ]</button>
+        <button onclick="timer.reset()">[ RESET ]</button>
+        <button onclick="app.save()" class="action">[ ZAPISZ ]</button>
+    </div>
 </div>
 
 <div class="s">
-    <span class="label">Log Aktywności (vs Rekord Globalny)</span>
     <div style="max-height: 400px; overflow-y: auto;">
         <table>
             <thead><tr>
-                <th>DATA</th>
-                <th>ID</th>
-                <th>CZAS</th>
-                <th style="width:200px;">PROGRES</th>
-                <th>AKCJE</th>
+                <th>[ DATA ]</th>
+                <th>[ ID ]</th>
+                <th>[ CZAS ]</th>
+                <th style="width:200px;">[ % ]</th>
+                <th>[ AKCJE ]</th>
             </tr></thead>
             <tbody id="lb"></tbody>
         </table>
     </div>
 </div>
 
-<div style="text-align:right; padding-bottom: 40px;">
-    <button onclick="app.export()">EXPORT</button>
-    <button onclick="document.getElementById('importFile').click()">IMPORT</button>
+<div style="text-align:right; padding-bottom: 40px; position:relative; z-index:1;">
+    <button onclick="app.export()">[ EXPORT ]</button>
+    <button onclick="document.getElementById('importFile').click()">[ IMPORT ]</button>
     <input type="file" id="importFile" accept=".json" style="display:none" onchange="app.import(event)">
-    <button onclick="app.clear()" style="border-style: dashed;">WIPE</button>
 </div>
 
 <script>
@@ -242,12 +323,60 @@ const app = {
     sync() { localStorage.setItem('f_v12', JSON.stringify(tasks)); this.render(); },
     
     render() { 
+        this.updateProgress();
         this.updateStats(); 
         this.renderChapters(); 
         this.renderLog(); 
         this.prepareChartData();
         this.drawChart(); 
         this.updateBrowserHistory();
+    },
+
+    updateProgress() {
+        const uniqueTasks = new Set(tasks.map(t => t.id).filter(id => id && id !== "???"));
+        const solvedCount = uniqueTasks.size;
+
+        const ranks = [
+            { max: 0, name: "Obserwator" },
+            { max: 24, name: "Nowicjusz" },
+            { max: 99, name: "Adept" },
+            { max: 249, name: "Student" },
+            { max: 499, name: "Inżynier" },
+            { max: 999, name: "Weteran" },
+            { max: 1999, name: "Naukowiec" },
+            { max: 2999, name: "Einstein" },
+            { max: Infinity, name: "Absolut" }
+        ];
+
+        let idx = 0;
+        while (idx < ranks.length - 1 && solvedCount > ranks[idx].max) { idx++; }
+
+        const currentRank = ranks[idx];
+        const prevMax = idx === 0 ? 0 : ranks[idx - 1].max + 1;
+        const target = currentRank.max + 1;
+
+        let rankDone = solvedCount - prevMax;
+        let rankRequired = target - prevMax;
+        let p = (rankDone / rankRequired) * 100;
+        let remaining = target - solvedCount;
+        
+        if (target === Infinity) { p = 100; remaining = 0; }
+
+        document.getElementById("rankName").innerText = currentRank.name;
+        
+        if (target !== Infinity) {
+            const nextRank = ranks[idx + 1];
+            document.getElementById("rankNext").innerText = `→ ${nextRank.name.toUpperCase()} (-${remaining})`;
+            document.getElementById("rankText").innerText = `${solvedCount} / ${target}`;
+        } else {
+            document.getElementById("rankNext").innerText = `MAX LEVEL`;
+            document.getElementById("rankText").innerText = `${solvedCount}`;
+        }
+
+        document.getElementById("rankFill").style.width = Math.min(100, Math.max(0, p)) + "%";
+        
+        document.getElementById("totalBooks").innerText = solvedCount;
+        document.getElementById("totalPercent").innerText = ((solvedCount / 3000) * 100).toFixed(2) + "%";
     },
 
     updateBrowserHistory() {
@@ -281,7 +410,7 @@ const app = {
             if (t.ms > groups[chap].max) { groups[chap].max = t.ms; groups[chap].str = t.timeStr; }
         });
 
-        let html = `<table><thead><tr><th>ROZDZIAŁ</th><th style="width: 90px;">TREND</th><th>SESJI</th><th>REKORD</th><th>ŚREDNIA</th></tr></thead><tbody>`;
+        let html = `<table><thead><tr><th>§</th><th style="width: 90px;">TREND</th><th>SUMA</th><th>MAX</th><th>SREDNIA</th></tr></thead><tbody>`;
         
         Object.keys(groups).sort((a,b) => (parseInt(a)||0) - (parseInt(b)||0)).forEach(chap => {
             const g = groups[chap];
@@ -310,8 +439,11 @@ const app = {
                 const w = 80, h = 16;
                 ctx.clearRect(0, 0, w, h);
 
+                let sG = ctx.createLinearGradient(0, 0, w, 0);
+                sG.addColorStop(0, "#4285F4"); sG.addColorStop(0.33, "#EA4335"); sG.addColorStop(0.66, "#FBBC05"); sG.addColorStop(1, "#34A853");
+
                 if(data.length === 1) {
-                    ctx.fillStyle = "black";
+                    ctx.fillStyle = sG;
                     ctx.beginPath(); ctx.arc(w/2, h/2, 2, 0, Math.PI*2); ctx.fill();
                     return;
                 }
@@ -321,8 +453,8 @@ const app = {
                 const stepX = w / (data.length - 1);
 
                 ctx.beginPath();
-                ctx.strokeStyle = "black";
-                ctx.lineWidth = 1.5;
+                ctx.strokeStyle = sG;
+                ctx.lineWidth = 2.0;
                 ctx.lineJoin = "round";
 
                 data.forEach((val, i) => {
@@ -333,8 +465,8 @@ const app = {
                 ctx.stroke();
                 
                 const lastY = 2 + (h - 4) - ((data[data.length-1] / range) * (h - 4));
-                ctx.fillStyle = "black";
-                ctx.beginPath(); ctx.arc(w - 2, lastY, 2, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = "white";
+                ctx.beginPath(); ctx.arc(w - 2, lastY, 2.5, 0, Math.PI*2); ctx.fill();
             });
         }, 0);
     },
@@ -346,12 +478,12 @@ const app = {
             const percent = globalMax > 0 ? (t.ms / globalMax) * 100 : 0;
             tbody.innerHTML += `<tr>
                 <td>${t.date}</td>
-                <td><strong style="cursor:pointer; border-bottom:1px dashed black;" onclick="app.resumeTask('${t.id}')" title="Kopiuj do paska">${t.id}</strong></td>
+                <td><strong style="cursor:pointer; border-bottom:1px solid #444;" onclick="app.resumeTask('${t.id}')">${t.id}</strong></td>
                 <td>${t.timeStr}</td>
                 <td><div class="table-bar-container"><div class="table-bar" style="width:${percent}%"></div></div></td>
                 <td>
-                    <button class="btn-small" onclick="app.editTask(${i})" title="Edytuj to zadanie">E</button>
-                    <button class="btn-small" onclick="app.remove(${i})" title="Usuń to zadanie">X</button>
+                    <button class="btn-small" onclick="app.editTask(${i})">Δ</button>
+                    <button class="btn-small" onclick="app.remove(${i})">⨯</button>
                 </td>
             </tr>`;
         });
@@ -416,7 +548,7 @@ const app = {
         ctx.clearRect(0, 0, w, h);
         
         if (!chartDataCache) {
-            ctx.fillStyle = "#aaa"; ctx.textAlign = "center"; ctx.font = "bold 12px Consolas";
+            ctx.fillStyle = "#9aa0a6"; ctx.textAlign = "center"; ctx.font = "500 12px Roboto, sans-serif";
             ctx.fillText("BRAK DANYCH - ROZPOCZNIJ POMIAR", w/2, h/2);
             return;
         }
@@ -457,49 +589,70 @@ const app = {
                 ctx.fillStyle = fillStyle; ctx.fill();
             } else {
                 ctx.setLineDash(isDashed ? [6, 4] : []);
-                ctx.strokeStyle = isDashed ? "#666" : "#000";
-                ctx.lineWidth = 2.5; ctx.stroke(); ctx.setLineDash([]);
+                
+                let lineGrad = ctx.createLinearGradient(0, 0, w, 0);
+                if (isDashed) {
+                    lineGrad.addColorStop(0, "rgba(255,255,255,0.15)");
+                    lineGrad.addColorStop(1, "rgba(255,255,255,0.6)");
+                    ctx.shadowBlur = 0;
+                } else {
+                    lineGrad.addColorStop(0, "#4285F4");
+                    lineGrad.addColorStop(0.33, "#EA4335");
+                    lineGrad.addColorStop(0.66, "#FBBC05");
+                    lineGrad.addColorStop(1, "#34A853");
+                    ctx.shadowColor = "#FBBC05";
+                    ctx.shadowBlur = 15;
+                }
+                
+                ctx.strokeStyle = lineGrad;
+                ctx.lineWidth = 4.0; ctx.stroke(); ctx.setLineDash([]);
+                ctx.shadowBlur = 0;
             }
         };
 
-        const grad = ctx.createLinearGradient(0, padT, 0, h - padB);
-        grad.addColorStop(0, "rgba(0,0,0,0.4)"); grad.addColorStop(1, "rgba(0,0,0,0.0)");
+        const bgGrad = ctx.createLinearGradient(0, padT, 0, h - padB);
+        bgGrad.addColorStop(0, "rgba(66, 133, 244, 0.2)");
+        bgGrad.addColorStop(0.5, "rgba(234, 67, 53, 0.05)");
+        bgGrad.addColorStop(1, "rgba(0,0,0,0)");
         
-        drawCurve('ySum', false, grad); drawCurve('ySum', false, null); drawCurve('yAvg', true, null);
+        drawCurve('ySum', false, bgGrad); drawCurve('ySum', false, null); drawCurve('yAvg', true, null);
 
-        // Rysowanie grubych kresek dla startu nowych rozdziałów i pionowych napisów
+        // Rysowanie grubych kresek dla startu nowych rozdziałów
         pts.forEach(p => {
             if (chartDataCache.chapterStarts[p.data.date]) {
                 const chaps = chartDataCache.chapterStarts[p.data.date].join(", ");
                 
-                // Gruba linia
                 ctx.beginPath();
                 ctx.moveTo(p.x, padT);
                 ctx.lineTo(p.x, h - padB);
-                ctx.strokeStyle = "rgba(0, 0, 0, 0.2)"; // Gruba i półprzezroczysta by nie zasłaniać wykresu
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
                 ctx.lineWidth = 8;
                 ctx.stroke();
 
-                // Napis wzdłuż linii (obrócony pionowo)
                 ctx.save();
-                let textX = p.x < 20 ? p.x + 14 : p.x - 10; // Przesunięcie na prawo jeśli za blisko lewej krawędzi
-                ctx.translate(textX, h - padB - 10); // Ustawienie początku na dole linii
-                ctx.rotate(-Math.PI / 2); // Obrót 90 stopni (tekst z dołu do góry)
-                ctx.fillStyle = "black";
+                let textX = p.x < 20 ? p.x + 14 : p.x - 10;
+                ctx.translate(textX, h - padB - 10);
+                ctx.rotate(-Math.PI / 2);
+                ctx.fillStyle = "#9aa0a6";
                 ctx.textAlign = "left";
-                ctx.font = "bold 12px Consolas";
-                ctx.fillText(chaps, 0, 0); // Sam napis rozdziału
+                ctx.font = "bold 12px Roboto, sans-serif";
+                ctx.fillText(chaps, 0, 0);
                 ctx.restore();
             }
         });
 
-        ctx.fillStyle = "white"; ctx.lineWidth = 2;
-        pts.forEach(p => {
-            ctx.strokeStyle = "#000"; ctx.beginPath(); ctx.arc(p.x, p.ySum, 4, 0, Math.PI*2); ctx.fill(); ctx.stroke();
-            ctx.strokeStyle = "#666"; ctx.beginPath(); ctx.arc(p.x, p.yAvg, 3, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+        ctx.lineWidth = 2;
+        pts.forEach((p, i) => {
+            ctx.strokeStyle = "#ffffff"; 
+            ctx.fillStyle = "#202124"; 
+            ctx.beginPath(); ctx.arc(p.x, p.ySum, 6, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+            
+            ctx.strokeStyle = "rgba(255,255,255,0.4)"; 
+            ctx.fillStyle = "#202124";
+            ctx.beginPath(); ctx.arc(p.x, p.yAvg, 5, 0, Math.PI*2); ctx.fill(); ctx.stroke();
         });
 
-        ctx.fillStyle = "black"; ctx.font = "10px Consolas"; ctx.textAlign = "center";
+        ctx.font = "11px 'Space Mono', monospace"; ctx.textAlign = "center";
         
         const maxLabels = Math.floor(w / 65);
         const skip = Math.max(1, Math.ceil(pts.length / maxLabels));
@@ -508,25 +661,30 @@ const app = {
         for(let i=0; i<pts.length; i+=skip) {
             let p = pts[i];
             ctx.beginPath(); ctx.moveTo(p.x, h - padB); ctx.lineTo(p.x, h - padB + 5);
-            ctx.strokeStyle = "#ccc"; ctx.lineWidth = 1; ctx.stroke();
+            ctx.strokeStyle = "#3c4043"; ctx.lineWidth = 1; ctx.stroke();
             
             let safeX = p.x;
             if (safeX < 20) safeX = 20;
             if (safeX > w - 20) safeX = w - 20;
             
-            ctx.fillStyle = "black";
+            ctx.fillStyle = "#fff";
             ctx.fillText(p.data.label, safeX, h - 10);
 
             let dObj = new Date(p.data.date + "T12:00:00");
             let dayName = daysEN[dObj.getDay()];
-            ctx.fillStyle = "#666";
+            ctx.fillStyle = "#555";
             ctx.fillText(dayName, safeX, padT - 10);
         }
 
-        ctx.textAlign = "left"; ctx.fillStyle = "black";
-        ctx.fillRect(10, 10, 12, 12); ctx.fillText("SUMA CZASU", 28, 20);
-        ctx.beginPath(); ctx.setLineDash([4, 2]); ctx.moveTo(100, 16); ctx.lineTo(120, 16); ctx.stroke(); ctx.setLineDash([]);
-        ctx.fillText("ŚREDNIA ZADANIA", 126, 20);
+        ctx.textAlign = "left"; 
+        
+        let legendGrad = ctx.createLinearGradient(10, 0, 22, 0);
+        legendGrad.addColorStop(0, "#4285F4"); legendGrad.addColorStop(1, "#EA4335");
+        ctx.fillStyle = legendGrad; ctx.fillRect(10, 10, 12, 12); 
+        ctx.fillStyle = "#aaa"; ctx.fillText("∑", 28, 20);
+        
+        ctx.beginPath(); ctx.setLineDash([4, 2]); ctx.strokeStyle = "rgba(255,255,255,1)"; ctx.moveTo(70, 16); ctx.lineTo(90, 16); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle = "#aaa"; ctx.fillText("µ", 96, 20);
 
         if (chartHoverX >= 0) {
             let closest = pts[0], minDist = Math.abs(chartHoverX - pts[0].x);
@@ -536,15 +694,15 @@ const app = {
             }
 
             ctx.beginPath(); ctx.moveTo(closest.x, padT); ctx.lineTo(closest.x, h - padB);
-            ctx.strokeStyle = "rgba(0,0,0,0.2)"; ctx.lineWidth = 2; ctx.stroke();
+            ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.lineWidth = 2; ctx.stroke();
 
-            ctx.beginPath(); ctx.arc(closest.x, closest.ySum, 6, 0, Math.PI*2); ctx.fillStyle = "black"; ctx.fill();
+            ctx.beginPath(); ctx.arc(closest.x, closest.ySum, 6, 0, Math.PI*2); ctx.fillStyle = "white"; ctx.fill();
 
             const t1 = `DATA: ${closest.data.date}`;
             const t2 = `SUMA: ${app.formatTime(closest.data.sum)}`;
-            const t3 = `ŚREDNIA: ${Math.round(closest.data.avg/1000)}s | ZADAŃ: ${closest.data.count}`;
+            const t3 = `SREDNIA: ${Math.round(closest.data.avg/1000)}s | ZADAN: ${closest.data.count}`;
             
-            ctx.font = "bold 11px Consolas";
+            ctx.font = "bold 12px 'Space Mono', monospace";
             const tw = Math.max(ctx.measureText(t1).width, ctx.measureText(t2).width, ctx.measureText(t3).width) + 20;
             const th = 55;
             let tx = closest.x + 15, ty = closest.ySum - 30;
@@ -552,11 +710,11 @@ const app = {
             if (tx + tw > w) tx = closest.x - tw - 15;
             if (ty < 0) ty = 10;
 
-            ctx.fillStyle = "black"; ctx.fillRect(tx + 4, ty + 4, tw, th);
-            ctx.fillStyle = "white"; ctx.fillRect(tx, ty, tw, th);
-            ctx.strokeStyle = "black"; ctx.lineWidth = 2; ctx.strokeRect(tx, ty, tw, th);
+            ctx.fillStyle = "#000"; ctx.fillRect(tx + 2, ty + 2, tw, th);
+            ctx.fillStyle = "#111"; ctx.fillRect(tx, ty, tw, th);
+            ctx.strokeStyle = "#333"; ctx.lineWidth = 1; ctx.strokeRect(tx, ty, tw, th);
 
-            ctx.fillStyle = "black"; ctx.textAlign = "left";
+            ctx.fillStyle = "white"; ctx.textAlign = "left";
             ctx.fillText(t1, tx + 10, ty + 18); ctx.fillText(t2, tx + 10, ty + 33); ctx.fillText(t3, tx + 10, ty + 48);
         }
     },
@@ -604,7 +762,3 @@ window.addEventListener('resize', () => { app.renderChapters(); app.drawChart();
 </script>
 </body>
 </html>
-
-
-
-
